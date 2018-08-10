@@ -7,16 +7,53 @@
 //
 
 import UIKit
+import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
-
+    let dataModel = DataModel()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        let navigationController = window!.rootViewController as! UINavigationController
+        let controller = navigationController.viewControllers[0] as! AllListsViewController
+        controller.dataModel = dataModel
+        
+        // Finds the root window and tells Swift that that is the UINavigation Controller. Using that controller, find the left-most view Controller (array 0) which is AllListsViewController
+        // Tell AllListsViewController that their dataModel refers to dataModel defined in the AppDelegate
+        
+        let center = UNUserNotificationCenter.current()
+        
+        /* center.requestAuthorization(options: [.alert, .sound]) {
+            granted, error in
+            if granted {
+                print("We have permission")
+            } else {
+                print("Permission denied")
+            }
+        }
+        
+        // Asks for permission to run local notifications
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Hello!"
+        content.body = "I am a local notification"
+        content.sound = UNNotificationSound.default()
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10,
+                                                        repeats: false)
+        let request = UNNotificationRequest(identifier: "MyNotification",
+                                            content: content, trigger: trigger)
+        center.add(request)
+        */
+        
+        center.delegate = self
+        
         return true
+        
+        // Creates a local notification occuring 10 seconds after app start up (timeInterval)
+        // Tells the UNUserNotificationCenter that AppDelegate is its delegate (center.delegate = self)
+        
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -25,6 +62,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
+        saveData()
+        
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
     }
@@ -38,9 +77,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
+        saveData()
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
-
+    
+    func saveData() {
+        dataModel.saveChecklists()
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("Received local notification \(notification)")
+    }
+    
+    // Method invoked when a local notification is posted but the app is still running (Method of the NotificationCenter Delegate Protocol)
 }
 
